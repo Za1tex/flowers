@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <!-- КЛИЕНТ: название, описание, адрес сайта и картинка превью -->
+  <title>Лепесток — цветочная мастерская</title>
+  <meta name="description" content="Авторские букеты из свежих цветов с доставкой по городу в день заказа. Закажите по телефону +7 (900) 000-00-00.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:site_name" content="Лепесток">
+  <meta property="og:title" content="Лепесток — цветочная мастерская">
+  <meta property="og:description" content="Авторские букеты из свежих цветов. Доставка по городу в день заказа.">
+  <meta property="og:url" content="https://za1tex.github.io/flowers/">
+  <meta property="og:image" content="https://za1tex.github.io/flowers/img/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#f4e2de">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 4c3 4 3 9 0 13-3-4-3-9 0-13zm0 13c4-3 9-3 12 0-3 3-8 3-12 0zm0 0c-4-3-9-3-12 0 3 3 8 3 12 0zm0 0v11' fill='%23e7a3ae' stroke='%232c3a2b' stroke-width='1.4'/%3E%3C/svg%3E">
+
+  <!-- КЛИЕНТ: данные магазина для поисковиков -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Florist",
+    "name": "Лепесток",
+    "description": "Цветочная мастерская: авторские букеты с доставкой по городу.",
+    "telephone": "+79000000000",
+    "url": "https://za1tex.github.io/flowers/",
+    "image": "https://za1tex.github.io/flowers/img/og.png",
+    "priceRange": "₽₽",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "ул. Цветочная, 1",
+      "addressLocality": "Ваш город",
+      "addressCountry": "RU"
+    },
+    "openingHours": "Mo-Su 08:00-21:00"
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@300;400;600&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip" href="#catalog">Перейти к каталогу</a>
+
+  <header class="site-header">
+    <div class="container header-row">
+      <!-- КЛИЕНТ: название магазина -->
+      <a class="logo" href="#top">Лепесток</a>
+      <nav class="nav" aria-label="Разделы">
+        <a href="#catalog">Букеты</a>
+        <a href="#occasions">Поводы</a>
+        <a href="#about">О нас</a>
+        <a href="#delivery">Доставка</a>
+        <a href="#reviews">Отзывы</a>
+        <a href="#contacts">Контакты</a>
+      </nav>
+      <!-- КЛИЕНТ: телефон (везде один и тот же номер) -->
+      <a class="phone-link" href="tel:+79000000000" aria-label="Позвонить: +7 (900) 000-00-00">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3.5h2.6l1.4 4-1.9 1.3a12 12 0 0 0 6.5 6.5l1.3-1.9 4 1.4v2.6a2 2 0 0 1-2.2 2A17 17 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2z"/></svg>
+        <span class="phone-text">+7 (900) 000-00-00</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="petals" aria-hidden="true"></div>
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <!-- КЛИЕНТ: тексты первого экрана -->
+          <p class="eyebrow">Цветочная мастерская</p>
+          <h1><span>Цветы, которые</span> <span>говорят за вас</span></h1>
+          <p class="lead">Авторские букеты из свежих цветов. Соберём за час и привезём по городу в день заказа.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="tel:+79000000000">Заказать букет</a>
+            <a class="btn btn-ghost" href="#catalog">Смотреть букеты</a>
+          </div>
+          <ul class="facts">
+            <li>Доставка от 2 часов</li>
+            <li>Свежие поставки каждый день</li>
+            <li>Открытка в подарок</li>
+          </ul>
+        </div>
+        <div class="hero-art">
+          <figure class="arch arch-tall">
+            <svg class="arch-art" viewBox="0 0 100 140" aria-hidden="true"><use href="#flower-line"/></svg>
+            <figcaption>фото букета</figcaption>
+          </figure>
+          <figure class="arch arch-short">
+            <svg class="arch-art" viewBox="0 0 100 140" aria-hidden="true"><use href="#flower-line"/></svg>
+            <figcaption>фото букета</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Рисунок цветка для пустых рамок -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <g id="flower-line" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M50 132 C 49 112, 52 96, 50 74"/>
+        <path d="M50 108 C 40 104, 34 96, 33 88 C 42 89, 48 97, 50 106"/>
+        <path d="M50 118 C 60 114, 66 106, 67 99 C 58 99, 52 107, 50 116"/>
+        <path d="M50 74 C 39 70, 35 57, 41 48 C 46 55, 49 64, 50 74"/>
+        <path d="M50 74 C 61 70, 65 57, 59 48 C 54 55, 51 64, 50 74"/>
+        <path d="M50 74 C 46 63, 46 49, 50 40 C 54 49, 54 63, 50 74"/>
+        <path d="M50 74 C 36 76, 28 68, 27 61 C 36 61, 44 67, 50 74"/>
+        <path d="M50 74 C 64 76, 72 68, 73 61 C 64 61, 56 67, 50 74"/>
+      </g>
+    </defs>
+  </svg>
+
+  <script src="js/main.js" defer></script>
+</body>
+</html>
