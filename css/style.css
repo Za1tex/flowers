@@ -350,3 +350,23 @@ body::before {
   }
   .call-bar .btn { width: 100%; }
 }
+
+/* ---------- Scroll reveal (only when JS turned it on) ---------- */
+[data-reveal] { transition: opacity .9s var(--ease), transform .9s var(--ease); transition-delay: var(--reveal-delay, 0s); }
+html.js-reveal [data-reveal]:not(.is-visible) { opacity: 0; transform: translateY(28px); }
+
+/* ---------- Hover ---------- */
+.bouquet:hover { transform: translateY(-6px); transition-duration: .45s; transition-delay: 0s; }
+.bouquet .arch { transition: transform .6s var(--ease), border-color .4s; }
+.bouquet:hover .arch { transform: scale(1.02); border-color: color-mix(in srgb, var(--fg) 40%, transparent); }
+.bouquet .arch-art { transition: transform .8s var(--ease); transform-origin: 50% 95%; }
+.bouquet:hover .arch-art { transform: rotate(-4deg); }
+
+/* Pause petals while the hero is off screen */
+.hero.is-offscreen .petal, .hero.is-offscreen .arch { animation-play-state: paused; }
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; transition-delay: 0s !important; }
+}

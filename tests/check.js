@@ -204,6 +204,71 @@ check('anchor-not-under-header', async (browser) => {
   }
 });
 
+// ---------- Task 4 ----------
+const revealOpacities = (page) => page.$$eval('[data-reveal]', (els) => els.map((el) => parseFloat(getComputedStyle(el).opacity)));
+
+check('no-js-visible', async (browser) => {
+  const { ctx, page } = await open(browser, { javaScriptEnabled: false });
+  const ops = await revealOpacities(page);
+  await ctx.close();
+  assert(ops.length > 10, 'data-reveal elements: ' + ops.length);
+  assert(ops.every((o) => o === 1), 'hidden without JS: ' + ops.filter((o) => o !== 1).length);
+});
+
+check('reveal-hides-then-shows', async (browser) => {
+  const { ctx, page } = await open(browser, { width: 1440, height: 900 });
+  await page.waitForTimeout(300);
+  const before = await page.evaluate(() => ({
+    js: document.documentElement.classList.contains('js-reveal'),
+    hidden: [...document.querySelectorAll('#contacts [data-reveal]')].every((el) => !el.classList.contains('is-visible')),
+  }));
+  // scroll down step by step like a person would
+  for (let y = 0; y <= 7000; y += 400) { await page.evaluate((v) => window.scrollTo({ top: v, behavior: 'instant' }), y); await page.waitForTimeout(60); }
+  await page.waitForTimeout(1500);
+  const after = await page.$$eval('[data-reveal]', (els) => els.filter((el) => !el.classList.contains('is-visible')).length);
+  const ops = await revealOpacities(page);
+  await ctx.close();
+  assert(before.js, 'html.js-reveal not set');
+  assert(before.hidden, 'contacts already revealed before scrolling');
+  assert(after === 0, `${after} elements never revealed`);
+  assert(ops.every((o) => o > 0.99), 'not fully visible after reveal');
+});
+
+check('reduced-motion', async (browser) => {
+  const { ctx, page } = await open(browser, { reducedMotion: 'reduce' });
+  await page.waitForTimeout(300);
+  const r = await page.evaluate(() => ({
+    petalsMoving: [...document.querySelectorAll('.petal')].filter((p) => getComputedStyle(p).animationName !== 'none').length,
+    archMoving: [...document.querySelectorAll('.arch')].filter((a) => getComputedStyle(a).animationName !== 'none').length,
+    hidden: [...document.querySelectorAll('[data-reveal]')].filter((el) => parseFloat(getComputedStyle(el).opacity) !== 1).length,
+  }));
+  await ctx.close();
+  assert(r.petalsMoving === 0, 'animated petals: ' + r.petalsMoving);
+  assert(r.archMoving === 0, 'animated arches: ' + r.archMoving);
+  assert(r.hidden === 0, 'hidden reveal elements: ' + r.hidden);
+});
+
+check('petal-count', async (browser) => {
+  for (const [width, max] of [[390, 8], [1440, 12]]) {
+    const { ctx, page } = await open(browser, { width });
+    const n = await page.$$eval('.petal', (p) => p.length);
+    await ctx.close();
+    assert(n >= 1 && n <= max, `width ${width}: ${n} petals (max ${max})`);
+  }
+});
+
+check('card-hover-lift', async (browser) => {
+  const { ctx, page } = await open(browser, { width: 1440 });
+  const card = page.locator('#catalog .bouquet').first();
+  await card.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(1200);
+  await card.hover();
+  await page.waitForTimeout(700);
+  const t = await card.evaluate((el) => getComputedStyle(el).transform);
+  await ctx.close();
+  assert(t !== 'none' && /matrix\(1, 0, 0, 1, 0, -[1-9]/.test(t), 'no lift on hover: ' + t);
+});
+
 (async () => {
   const only = process.argv.slice(2);
   const browser = await chromium.launch();

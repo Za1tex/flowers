@@ -29,6 +29,39 @@
     onScroll();
   }
 
-  spawnPetals(document.querySelector('.hero .petals'), window.innerWidth < 700 ? 7 : 12);
+  // Плавное появление блоков [data-reveal] при прокрутке.
+  function initReveal() {
+    var items = document.querySelectorAll('[data-reveal]');
+    if (!('IntersectionObserver' in window) || !items.length) return;
+    // Небольшая задержка между соседними карточками.
+    for (var i = 0; i < items.length; i++) {
+      var el = items[i];
+      var idx = Array.prototype.indexOf.call(el.parentNode.children, el);
+      el.style.setProperty('--reveal-delay', ((idx % 4) * 0.09).toFixed(2) + 's');
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); }
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+    document.documentElement.classList.add('js-reveal');
+    for (var j = 0; j < items.length; j++) io.observe(items[j]);
+  }
+
+  // Останавливает лепестки, когда первый экран не виден.
+  function initHeroPause() {
+    var hero = document.querySelector('.hero');
+    if (!hero || !('IntersectionObserver' in window)) return;
+    new IntersectionObserver(function (entries) {
+      hero.classList.toggle('is-offscreen', !entries[0].isIntersecting);
+    }).observe(hero);
+  }
+
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduceMotion) {
+    spawnPetals(document.querySelector('.hero .petals'), window.innerWidth < 700 ? 7 : 12);
+    initReveal();
+    initHeroPause();
+  }
   initHeader();
 })();
