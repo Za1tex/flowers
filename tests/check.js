@@ -138,6 +138,72 @@ check('photo-in-arch', async (browser) => {
   assert(Math.abs(r.imgH - r.after) <= 2, `img does not fill arch: ${r.imgH} vs ${r.after}`);
 });
 
+// ---------- Task 3 ----------
+check('sections', async (browser) => {
+  const { ctx, page } = await open(browser);
+  const r = await page.evaluate(() => ({
+    nav: [...document.querySelectorAll('.nav a')].map((a) => a.getAttribute('href')),
+    ids: ['catalog', 'occasions', 'about', 'delivery', 'reviews', 'contacts'].filter((id) => !document.getElementById(id)),
+    reviews: document.querySelectorAll('#reviews blockquote.review').length,
+    footer: !!document.querySelector('footer'),
+  }));
+  await ctx.close();
+  assert(r.ids.length === 0, 'missing sections: ' + r.ids.join(','));
+  for (const h of r.nav) assert(h.startsWith('#'), 'nav href ' + h);
+  assert(r.nav.length >= 6, 'nav links: ' + r.nav.length);
+  assert(r.reviews === 3, 'reviews: ' + r.reviews);
+  assert(r.footer, 'no footer');
+});
+
+check('nav-targets-exist', async (browser) => {
+  const { ctx, page } = await open(browser);
+  const missing = await page.$$eval('a[href^="#"]', (as) => as.map((a) => a.getAttribute('href'))
+    .filter((h) => h.length > 1 && !document.getElementById(h.slice(1))));
+  await ctx.close();
+  assert(missing.length === 0, 'anchors without target: ' + missing.join(','));
+});
+
+check('all-tel-same', async (browser) => {
+  const { ctx, page } = await open(browser);
+  const hrefs = await page.$$eval('a[href^="tel:"]', (as) => as.map((a) => a.getAttribute('href')));
+  await ctx.close();
+  assert(hrefs.length >= 10, 'tel links: ' + hrefs.length);
+  const bad = hrefs.filter((h) => h !== PHONE_HREF);
+  assert(bad.length === 0, 'different tel links: ' + bad.join(','));
+});
+
+check('call-bar', async (browser) => {
+  let { ctx, page } = await open(browser, { width: 390, height: 844 });
+  const m = await page.evaluate(() => {
+    const bar = document.querySelector('.call-bar');
+    if (!bar) return null;
+    return { display: getComputedStyle(bar).display, h: bar.getBoundingClientRect().height,
+      pad: parseFloat(getComputedStyle(document.body).paddingBottom), href: bar.querySelector('a')?.getAttribute('href') };
+  });
+  await ctx.close();
+  assert(m, 'no .call-bar');
+  assert(m.display !== 'none', 'call-bar hidden on phone');
+  assert(m.href === PHONE_HREF, 'call-bar href ' + m.href);
+  assert(m.pad >= m.h, `body padding-bottom ${m.pad} < bar ${m.h}`);
+  ({ ctx, page } = await open(browser, { width: 1440 }));
+  const d = await page.$eval('.call-bar', (b) => getComputedStyle(b).display);
+  await ctx.close();
+  assert(d === 'none', 'call-bar visible on desktop');
+});
+
+check('anchor-not-under-header', async (browser) => {
+  for (const width of [390, 1440]) {
+    const { ctx, page } = await open(browser, { width });
+    const r = await page.evaluate(() => {
+      const s = document.getElementById('delivery');
+      s.scrollIntoView({ behavior: 'instant' });
+      return { top: s.getBoundingClientRect().top, hdr: document.querySelector('.site-header').getBoundingClientRect().bottom };
+    });
+    await ctx.close();
+    assert(r.top >= r.hdr - 1, `width ${width}: section top ${r.top} under header ${r.hdr}`);
+  }
+});
+
 (async () => {
   const only = process.argv.slice(2);
   const browser = await chromium.launch();
