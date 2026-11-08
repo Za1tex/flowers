@@ -6,7 +6,13 @@ const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '..');
 const URL = 'file://' + path.join(ROOT, 'index.html');
-const PHONE_HREF = 'tel:+79000000000';
+
+// ===== КЛИЕНТ: поменять в копии сайта для клиента =====
+const SHOP_NAME = 'Лепесток';          // должно входить в <title>
+const PHONE_HREF = 'tel:+79000000000'; // ссылка звонка, одна на весь сайт
+const HAS_REVIEWS = true;              // false, если раздел отзывов удалён
+// ======================================================
+const PHONE_LD = PHONE_HREF.replace('tel:', '');
 
 // Third-party font loads may fail offline; only our own errors count.
 const isExternal = (text) => /fonts\.(googleapis|gstatic)\.com/.test(text);
@@ -58,12 +64,12 @@ check('meta-tags', async (browser) => {
     };
   });
   await ctx.close();
-  assert(m.title.includes('Лепесток'), 'title: ' + m.title);
+  assert(m.title.includes(SHOP_NAME), 'title: ' + m.title);
   assert(m.lang === 'ru', 'lang: ' + m.lang);
   assert(m.desc && m.ogt && m.ogd, 'description / og:title / og:description missing');
   assert(m.ogi.endsWith('img/og.png'), 'og:image: ' + m.ogi);
   assert(m.ld && m.ld['@type'] === 'Florist', 'JSON-LD @type');
-  assert(m.ld.telephone === '+79000000000', 'JSON-LD telephone: ' + (m.ld && m.ld.telephone));
+  assert(m.ld.telephone === PHONE_LD, 'JSON-LD telephone: ' + (m.ld && m.ld.telephone));
 });
 
 check('hero', async (browser) => {
@@ -92,7 +98,7 @@ check('catalog', async (browser) => {
     arch: !!el.querySelector('.arch'),
   })));
   await ctx.close();
-  assert(cards.length >= 6 && cards.length <= 8, 'bouquets: ' + cards.length);
+  assert(cards.length >= 1, 'bouquets: ' + cards.length);
   for (const c of cards) {
     assert(c.title, 'bouquet without title');
     assert(/^\d[\d\s ]* ₽$/.test(c.price), 'bad price: ' + c.price);
@@ -105,7 +111,7 @@ check('occasions', async (browser) => {
   const { ctx, page } = await open(browser);
   const n = await page.$$eval('#occasions .occasion', (els) => els.map((el) => el.querySelector('a[href^="tel:"]')?.getAttribute('href')));
   await ctx.close();
-  assert(n.length >= 4 && n.length <= 6, 'occasions: ' + n.length);
+  assert(n.length >= 1, 'occasions: ' + n.length);
   assert(n.every((h) => h === PHONE_HREF), 'occasion without tel link');
 });
 
@@ -142,16 +148,18 @@ check('photo-in-arch', async (browser) => {
 check('sections', async (browser) => {
   const { ctx, page } = await open(browser);
   const r = await page.evaluate(() => ({
+    hasReviews: !!document.getElementById('reviews'),
     nav: [...document.querySelectorAll('.nav a')].map((a) => a.getAttribute('href')),
-    ids: ['catalog', 'occasions', 'about', 'delivery', 'reviews', 'contacts'].filter((id) => !document.getElementById(id)),
+    ids: ['catalog', 'occasions', 'about', 'delivery', 'contacts'].filter((id) => !document.getElementById(id)),
     reviews: document.querySelectorAll('#reviews blockquote.review').length,
     footer: !!document.querySelector('footer'),
   }));
   await ctx.close();
   assert(r.ids.length === 0, 'missing sections: ' + r.ids.join(','));
   for (const h of r.nav) assert(h.startsWith('#'), 'nav href ' + h);
-  assert(r.nav.length >= 6, 'nav links: ' + r.nav.length);
-  assert(r.reviews === 3, 'reviews: ' + r.reviews);
+  assert(r.nav.length >= 5, 'nav links: ' + r.nav.length);
+  assert(r.hasReviews === HAS_REVIEWS, 'reviews section present: ' + r.hasReviews + ', expected ' + HAS_REVIEWS);
+  if (HAS_REVIEWS) assert(r.reviews >= 1, 'reviews: ' + r.reviews);
   assert(r.footer, 'no footer');
 });
 
@@ -277,6 +285,59 @@ check('og-image', async () => {
   assert(buf.slice(1, 4).toString() === 'PNG', 'not a PNG');
   const w = buf.readUInt32BE(16), h = buf.readUInt32BE(20);
   assert(w === 1200 && h === 630, `size ${w}x${h}`);
+});
+
+// ---------- Final review fixes ----------
+check('about-caption-not-covered', async (browser) => {
+  for (const width of [360, 375, 390]) {
+    const { ctx, page } = await open(browser, { width, javaScriptEnabled: false });
+    const r = await page.evaluate(() => {
+      const cap = document.querySelector('.about-art .arch-wide figcaption');
+      const range = document.createRange(); range.selectNodeContents(cap);
+      const t = range.getBoundingClientRect();
+      const small = document.querySelector('.about-art .arch-small').getBoundingClientRect();
+      return { textRight: t.right, textBottom: t.bottom, smallLeft: small.left - 8, smallTop: small.top - 8 };
+    });
+    await ctx.close();
+    const overlaps = r.textRight > r.smallLeft && r.textBottom > r.smallTop;
+    assert(!overlaps, `width ${width}: caption ends at ${r.textRight.toFixed(1)}, small arch halo starts at ${r.smallLeft.toFixed(1)}`);
+  }
+});
+
+check('no-dead-hash-links', async (browser) => {
+  const { ctx, page } = await open(browser);
+  const n = await page.$$eval('a[href="#"]', (as) => as.map((a) => a.textContent.trim()));
+  await ctx.close();
+  assert(n.length === 0, 'links to "#": ' + n.join(', '));
+});
+
+check('demo-years-consistent', async (browser) => {
+  const { ctx, page } = await open(browser);
+  const r = await page.evaluate(() => ({
+    since: (document.querySelector('#about').textContent.match(/с (\d{4}) года/) || [])[1],
+    years: (document.querySelector('.numbers dt')?.textContent.match(/(\d+)/) || [])[1],
+    footer: (document.querySelector('.site-footer').textContent.match(/© (\d{4})/) || [])[1],
+  }));
+  await ctx.close();
+  if (!r.since || !r.years) return; // в тексте клиента может не быть этих фактов
+  assert(r.footer, 'no © year in footer');
+  assert(Number(r.footer) - Number(r.since) === Number(r.years), `since ${r.since} + ${r.years} years != © ${r.footer}`);
+});
+
+check('color-mix-has-fallback', async () => {
+  // Older iOS Safari (< 16.2) drops declarations with color-mix(); each must follow a plain one.
+  const css = fs.readFileSync(path.join(ROOT, 'css/style.css'), 'utf8');
+  const missing = [];
+  for (const block of css.split('}')) {
+    const decls = block.split(/[;{]/).map((d) => d.trim());
+    decls.forEach((d, i) => {
+      if (!d.includes('color-mix(')) return;
+      const prop = d.split(':')[0].trim();
+      const hasPlain = decls.slice(0, i).some((p) => p.startsWith(prop + ':') && !p.includes('color-mix('));
+      if (!hasPlain) missing.push(prop + ' in "' + block.split('{')[0].trim().slice(-40) + '"');
+    });
+  }
+  assert(missing.length === 0, 'no fallback: ' + missing.join(' | '));
 });
 
 (async () => {
