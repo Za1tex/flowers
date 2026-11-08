@@ -88,6 +88,9 @@ body::before {
 .site-header.is-scrolled { border-bottom-color: var(--line); }
 .header-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 68px; }
 .logo { font-family: var(--serif); font-style: italic; font-size: 30px; text-decoration: none; line-height: 1; }
+.logo-mark { display: inline-flex; color: var(--fg); }
+.logo-mark svg { width: 36px; height: 36px; fill: var(--petal); stroke: currentColor; stroke-width: 1.2; stroke-linejoin: round; transition: transform .6s var(--ease); }
+.logo-mark:hover svg { transform: rotate(-12deg); }
 .nav { display: flex; gap: 26px; font-size: 14px; letter-spacing: .03em; }
 .nav a { text-decoration: none; position: relative; padding: 4px 0; }
 .nav a::after {

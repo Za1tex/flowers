@@ -8,7 +8,7 @@ const ROOT = path.resolve(__dirname, '..');
 const URL = 'file://' + path.join(ROOT, 'index.html');
 
 // ===== КЛИЕНТ: поменять в копии сайта для клиента =====
-const SHOP_NAME = 'Лепесток';          // должно входить в <title>
+const SHOP_NAME = 'Цветочная мастерская';          // должно входить в <title>
 const PHONE_HREF = 'tel:+79000000000'; // ссылка звонка, одна на весь сайт
 const HAS_REVIEWS = true;              // false, если раздел отзывов удалён
 // ======================================================
@@ -338,6 +338,22 @@ check('color-mix-has-fallback', async () => {
     });
   }
   assert(missing.length === 0, 'no fallback: ' + missing.join(' | '));
+});
+
+// ---------- Правки владельца ----------
+check('no-shop-name', async (browser) => {
+  const { ctx, page } = await open(browser);
+  const html = await page.content();
+  await ctx.close();
+  assert(!html.includes('Лепесток'), 'shop name still on the page');
+});
+
+check('terms-without-delivery-and-timing', async (browser) => {
+  const { ctx, page } = await open(browser);
+  const t = await page.$eval('.terms', (el) => el.textContent);
+  await ctx.close();
+  assert(!t.includes('Доставка по городу') && !t.includes('Сроки'), 'removed terms still shown');
+  assert(t.includes('Оплата') && t.includes('Самовывоз'), 'kept terms missing');
 });
 
 (async () => {
