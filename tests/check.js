@@ -269,6 +269,16 @@ check('card-hover-lift', async (browser) => {
   assert(t !== 'none' && /matrix\(1, 0, 0, 1, 0, -[1-9]/.test(t), 'no lift on hover: ' + t);
 });
 
+// ---------- Task 5 ----------
+check('og-image', async () => {
+  const file = path.join(ROOT, 'img/og.png');
+  assert(fs.existsSync(file), 'img/og.png missing');
+  const buf = fs.readFileSync(file);
+  assert(buf.slice(1, 4).toString() === 'PNG', 'not a PNG');
+  const w = buf.readUInt32BE(16), h = buf.readUInt32BE(20);
+  assert(w === 1200 && h === 630, `size ${w}x${h}`);
+});
+
 (async () => {
   const only = process.argv.slice(2);
   const browser = await chromium.launch();
